@@ -7,13 +7,11 @@ function useDropdownPosition(
     if (!ref.current) return { top: 0, left: 0 };
 
     const rect = ref.current.getBoundingClientRect();
-    const dropdownWidth = 240; // Dropdown width (w-60 = 15rem =240px)
+    const dropdownWidth = 296; // Dropdown width (w-60 = 15rem =240px)
 
     // Calculate the initial position
     let left = rect.left + window.scrollX;
     const top = rect.bottom + window.scrollY;
-
-    console.log(rect.left, rect.bottom, window.scrollX, window.scrollY);
 
     // Check if dropdown would go off the right edge of the viewport
     if (left + dropdownWidth > window.innerWidth) {
