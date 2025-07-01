@@ -3,14 +3,14 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import CategoryDropdown from "./category-dropdown";
-import { CustomCategoryType } from "../type";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ListFilterIcon } from "lucide-react";
 import CategoriesSideBar from "./categories-sidebar";
+import { CategoriesGetManyOutput } from "@/modules/categories/types";
 
 interface Props {
-  data: CustomCategoryType[];
+  data: CategoriesGetManyOutput;
 }
 
 const Categories = ({ data }: Props) => {
@@ -62,11 +62,7 @@ const Categories = ({ data }: Props) => {
   return (
     <div className="relative w-full">
       {/* Categories sidebar */}
-      <CategoriesSideBar
-        open={isSideBarOpen}
-        onOpenChange={setIsSideBarOpen}
-        data={data}
-      />
+      <CategoriesSideBar open={isSideBarOpen} onOpenChange={setIsSideBarOpen} />
 
       {/* Hidden div to measure all items */}
       <div
@@ -74,7 +70,7 @@ const Categories = ({ data }: Props) => {
         className="absolute opacity-0 pointer-events-none flex"
         style={{ position: "fixed", top: -9999, left: -9999 }}
       >
-        {data.map((category: CustomCategoryType) => (
+        {data.map((category: CategoriesGetManyOutput[1]) => (
           <div key={category.id}>
             <CategoryDropdown
               category={category}
@@ -92,15 +88,17 @@ const Categories = ({ data }: Props) => {
         onMouseLeave={() => setIsAnyHovered(false)}
         className="flex flex-nowrap items-center"
       >
-        {data.slice(0, visibleCount).map((category: CustomCategoryType) => (
-          <div key={category.id}>
-            <CategoryDropdown
-              category={category}
-              isActive={activeCategory == category.slug}
-              isNavigationHovered={isAnyHovered}
-            />
-          </div>
-        ))}
+        {data
+          .slice(0, visibleCount)
+          .map((category: CategoriesGetManyOutput[1]) => (
+            <div key={category.id}>
+              <CategoryDropdown
+                category={category}
+                isActive={activeCategory == category.slug}
+                isNavigationHovered={isAnyHovered}
+              />
+            </div>
+          ))}
 
         <div ref={viewAllRef} className="shrink-0">
           <Button
