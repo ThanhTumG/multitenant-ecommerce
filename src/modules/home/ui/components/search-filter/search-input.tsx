@@ -50,7 +50,6 @@ const SearchInput = ({ disabled }: Props) => {
           </Link>
         </Button>
       )}
-      {/* TODO: Add library button */}
     </div>
   );
 };

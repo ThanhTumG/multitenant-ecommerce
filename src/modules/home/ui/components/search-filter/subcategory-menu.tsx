@@ -1,5 +1,4 @@
 import { CategoriesGetManyOutput } from "@/modules/categories/types";
-import { Category } from "@/payload-types";
 import Link from "next/link";
 import React from "react";
 
@@ -27,15 +26,17 @@ const SubcategoryMenu = ({ category, isOpen, position }: Props) => {
         className="w-74 text-black rounded-md overflow-hidden border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-x-[2px] -translate-y-[2px]"
       >
         <div>
-          {category.subcategories?.map((subcategory: Category) => (
-            <Link
-              key={subcategory.slug}
-              href={`/${category.slug}/${subcategory.slug}`}
-              className="w-full text-left p-4 hover:bg-black hover:text-white flex justify-between items-center underline font-medium"
-            >
-              {subcategory.name}
-            </Link>
-          ))}
+          {category.subcategories?.map(
+            (subcategory: CategoriesGetManyOutput[1]) => (
+              <Link
+                key={subcategory.slug}
+                href={`/${category.slug}/${subcategory.slug}`}
+                className="w-full text-left p-4 hover:bg-black hover:text-white flex justify-between items-center underline font-medium"
+              >
+                {subcategory.name}
+              </Link>
+            )
+          )}
         </div>
       </div>
     </div>

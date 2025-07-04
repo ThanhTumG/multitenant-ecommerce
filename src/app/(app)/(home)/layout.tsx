@@ -1,9 +1,12 @@
 import React, { Suspense } from "react";
 import { getQueryClient, trpc } from "@/trpc/server";
 
-import Navbar from "./navbar";
-import Footer from "./footer";
-import { SearchFilters, SearchFiltersLoading } from "./search-filter";
+import Navbar from "@/modules/home/ui/components/navbar";
+import Footer from "@/modules/home/ui/components/footer";
+import {
+  SearchFilters,
+  SearchFiltersLoading,
+} from "@/modules/home/ui/components/search-filter";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 interface Props {
@@ -20,7 +23,6 @@ const Layout = async ({ children }: Props) => {
       <Navbar />
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense fallback={<SearchFiltersLoading />}>
-          {/* Search Filter */}
           <SearchFilters />
         </Suspense>
       </HydrationBoundary>
