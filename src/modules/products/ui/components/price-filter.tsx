@@ -10,7 +10,6 @@ interface Props {
 
 export const formatAsCurrency = (value: string) => {
   const numericValue = value.replace(/[^0-9.]/g, "");
-
   const parts = numericValue.split(".");
 
   const formattedValue =
