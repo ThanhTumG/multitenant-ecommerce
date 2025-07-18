@@ -173,9 +173,7 @@ export const SignUpView = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      >
-        Background Column
-      </div>
+      />
     </div>
   );
 };
