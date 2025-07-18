@@ -142,9 +142,7 @@ export const SignInView = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      >
-        Background Column
-      </div>
+      />
     </div>
   );
 };
