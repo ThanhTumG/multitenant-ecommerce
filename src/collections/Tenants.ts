@@ -32,20 +32,27 @@ export const Tenants: CollectionConfig = {
       relationTo: "media",
     },
     {
-      name: "stripeAccountId",
+      name: "partnerCode",
       type: "text",
       required: true,
       admin: {
-        readOnly: true,
+        description: "Your MoMo business account’s unique identity",
       },
     },
     {
-      name: "stripeDetailsSubmitted",
-      type: "checkbox",
+      name: "accessKey",
+      type: "text",
+      required: true,
       admin: {
-        readOnly: true,
-        description:
-          "You cannot create products until you submit your Stripe details",
+        description: "Server Access key",
+      },
+    },
+    {
+      name: "secretKey",
+      type: "text",
+      required: true,
+      admin: {
+        description: "Used to create digital signature",
       },
     },
   ],

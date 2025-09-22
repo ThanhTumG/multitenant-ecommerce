@@ -165,11 +165,18 @@ export interface Tenant {
    */
   slug: string;
   image?: (string | null) | Media;
-  stripeAccountId: string;
   /**
-   * You cannot create products until you submit your Stripe details
+   * Your MoMo business account’s unique identity
    */
-  stripeDetailsSubmitted?: boolean | null;
+  partnerCode: string;
+  /**
+   * Server Access key
+   */
+  accessKey: string;
+  /**
+   * Used to create digital signature
+   */
+  secretKey: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -220,7 +227,7 @@ export interface Product {
   name: string;
   description?: string | null;
   /**
-   * Price in USD
+   * Price in VND
    */
   price: number;
   category?: (string | null) | Category;
@@ -402,8 +409,9 @@ export interface TenantsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   image?: T;
-  stripeAccountId?: T;
-  stripeDetailsSubmitted?: T;
+  partnerCode?: T;
+  accessKey?: T;
+  secretKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }

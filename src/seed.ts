@@ -148,7 +148,9 @@ const seed = async () => {
     data: {
       name: "admin",
       slug: "admin",
-      stripeAccountId: "admin",
+      accessKey: "MOCK",
+      partnerCode: "MOCK",
+      secretKey: "MOCK",
     },
   });
 
