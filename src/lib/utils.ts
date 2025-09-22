@@ -12,7 +12,7 @@ export function generateTenantURL(tenantSlug: string) {
 export function formatCurrency(value: number | string) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "VND",
     maximumFractionDigits: 0,
   }).format(Number(value));
 }

@@ -5,14 +5,14 @@ import React from "react";
 
 interface Props {
   total: number;
-  onCheckout: () => void;
+  onPurchase: () => void;
   isCanceled?: boolean;
   isPending?: boolean;
 }
 
 export const CheckoutSidebar = ({
   total,
-  onCheckout,
+  onPurchase,
   isCanceled,
   isPending,
 }: Props) => {
@@ -27,7 +27,7 @@ export const CheckoutSidebar = ({
         <Button
           variant="elevated"
           disabled={isPending}
-          onClick={onCheckout}
+          onClick={onPurchase}
           size="lg"
           className="text-base w-full text-white bg-primary hover:bg-pink-400 hover:text-primary"
         >
