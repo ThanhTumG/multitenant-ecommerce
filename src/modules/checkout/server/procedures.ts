@@ -8,6 +8,7 @@ import {
 } from "@/trpc/init";
 import { Media, Tenant } from "@/payload-types";
 import { TRPCError } from "@trpc/server";
+import { generateTenantURL } from "@/lib/utils";
 
 export const checkoutRouter = createTRPCRouter({
   purchase: protectedProcedure
@@ -66,16 +67,23 @@ export const checkoutRouter = createTRPCRouter({
 
       // TODO: Verify the MoMo tokens
       const { accessKey, secretKey, partnerCode } = tenant;
-
       const amount = products.docs.reduce((prev, curr) => prev + curr.price, 0);
 
       const orderInfo = "pay with MoMo";
-      const redirectUrl = "http://localhost:3000";
-      const ipnUrl = "http://localhost:3000";
+      const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}${generateTenantURL(input.tenantSlug)}/checkout?success=true`;
+      const ipnUrl = `https://widest-galen-sparkishly.ngrok-free.dev/api/momo-webhook`;
       const requestType = "payWithMethod";
       const orderId = partnerCode + new Date().getTime();
       const requestId = orderId;
-      const extraData = "";
+      type ExtraData = { productIds: string[]; userId?: string };
+      const extraPayload: ExtraData = {
+        productIds: input.productIds,
+        userId: (ctx as { session?: { user?: { id?: string } } }).session?.user
+          ?.id,
+      };
+      const extraData = Buffer.from(JSON.stringify(extraPayload)).toString(
+        "base64"
+      );
       const orderGroupId = "";
       const autoCapture = true;
       const lang = "vi";
@@ -114,7 +122,7 @@ export const checkoutRouter = createTRPCRouter({
       const requestBody = JSON.stringify({
         partnerCode: partnerCode,
         partnerName: "Test",
-        storeId: "MomoTestStore",
+        storeId: "MoMoTestStore",
         requestId: requestId,
         amount: amount,
         orderId: orderId,
@@ -132,7 +140,7 @@ export const checkoutRouter = createTRPCRouter({
       //options for axios
       const option = {
         method: "POST",
-        url: "https://test-payment.momo.vn/v2/gateway/api/create",
+        url: `${process.env.NEXT_PUBLIC_PAYMENT_URL}/create`,
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(requestBody),
@@ -149,6 +157,73 @@ export const checkoutRouter = createTRPCRouter({
           message: "Server Error",
         });
       }
+    }),
+
+  callback: baseProcedure
+    .input(
+      z.object({
+        partnerCode: z.string().optional(),
+        orderId: z.string().optional(),
+        requestId: z.string().optional(),
+        amount: z.number().optional(),
+        orderInfo: z.string().optional(),
+        orderType: z.string().optional(),
+        transId: z.number().optional(),
+        resultCode: z.number().optional(),
+        message: z.string().optional(),
+        payType: z.string().optional(),
+        responseTime: z.number().optional(),
+        extraData: z.string().optional(),
+        signature: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      console.log("Raw input received:", input);
+      console.log("Full context:", ctx);
+
+      const { orderId, resultCode, amount, transId } = input;
+
+      if (resultCode === 0) {
+        console.log(
+          `Payment successful for order ${orderId}, transaction ID: ${transId}, amount: ${amount}`
+        );
+        // Parse extraData để lấy productIds + userId
+        const decoded = input.extraData
+          ? JSON.parse(Buffer.from(input.extraData, "base64").toString("utf8"))
+          : { productIds: [], userId: undefined };
+        const productIds: string[] = Array.isArray(decoded.productIds)
+          ? decoded.productIds
+          : [];
+        const userId: string | undefined = decoded.userId;
+
+        if (!userId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not found",
+          });
+        }
+        if (productIds.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Product not found",
+          });
+        }
+
+        // Tạo 1 order cho mỗi productId (nếu có userId & productIds)
+        for (const pid of productIds) {
+          await ctx.payload.create({
+            collection: "orders",
+            data: {
+              name: `Order - ${orderId}`,
+              user: userId,
+              product: pid,
+              transactionId: String(transId ?? ""),
+            },
+          });
+        }
+      }
+
+      return { success: true };
     }),
 
   getProducts: baseProcedure

@@ -52,11 +52,14 @@ export const CheckoutView = ({ tenantSlug }: Props) => {
 
   useEffect(() => {
     if (states.success) {
+      console.log("states.success");
       clearCart();
+      setStates({ success: false, cancel: false });
+
       // TODO: Invalidate library
       router.push("/product");
     }
-  }, [states.success, clearCart, router]);
+  }, [states.success, clearCart, router, setStates]);
 
   useEffect(() => {
     if (error?.data?.code === "NOT_FOUND") {
