@@ -52,9 +52,8 @@ export const CheckoutView = ({ tenantSlug }: Props) => {
 
   useEffect(() => {
     if (states.success) {
-      console.log("states.success");
-      clearCart();
       setStates({ success: false, cancel: false });
+      clearCart();
 
       // TODO: Invalidate library
       router.push("/product");
