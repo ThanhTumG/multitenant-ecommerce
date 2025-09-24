@@ -3,6 +3,7 @@ import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Sort, Where } from "payload";
 import { Category, Media, Tenant } from "@/payload-types";
 import { sortValues } from "../search-params";
+import { headers as getHeaders } from "next/headers";
 
 export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
@@ -123,14 +124,44 @@ export const productsRouter = createTRPCRouter({
   getOne: baseProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
+      const headers = await getHeaders();
+      const session = await ctx.payload.auth({ headers });
+
       const product = await ctx.payload.findByID({
         collection: "products",
         id: input.id,
         depth: 2, // Populate the "product.image", "product.tenant" and "product.tenant.image"
       });
 
+      let isPurchased = false;
+
+      if (session.user) {
+        const orderData = await ctx.payload.find({
+          collection: "orders",
+          pagination: false,
+          limit: 1,
+          where: {
+            and: [
+              {
+                product: {
+                  equals: input.id,
+                },
+              },
+              {
+                user: {
+                  equals: session.user.id,
+                },
+              },
+            ],
+          },
+        });
+
+        isPurchased = !!orderData.docs[0];
+      }
+
       return {
         ...product,
+        isPurchased,
         image: product.image as Media | null,
         tenant: product.tenant as Tenant & { image: Media | null },
       };
