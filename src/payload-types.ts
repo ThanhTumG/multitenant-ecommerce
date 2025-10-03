@@ -238,6 +238,10 @@ export interface Product {
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
   returnPolicy?: ('30-day' | '14-day' | '7-day' | '3-day' | '1-day' | 'no-refunds') | null;
+  /**
+   * Protected content only visible for customers after purchase. Add product documentation, downloadable file, getting started guide, and bonus materials. Supports markdown.
+   */
+  content?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -426,6 +430,7 @@ export interface ProductsSelect<T extends boolean = true> {
   tags?: T;
   image?: T;
   returnPolicy?: T;
+  content?: T;
   updatedAt?: T;
   createdAt?: T;
 }

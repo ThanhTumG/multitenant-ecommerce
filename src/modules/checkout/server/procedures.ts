@@ -178,9 +178,6 @@ export const checkoutRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      console.log("Raw input received:", input);
-      console.log("Full context:", ctx);
-
       const { orderId, resultCode, amount, transId } = input;
 
       if (resultCode === 0) {
