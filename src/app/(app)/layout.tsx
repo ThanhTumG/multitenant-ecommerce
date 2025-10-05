@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Funroad",
   description:
     "A multi-tenant ecommerce platform built with Next.js, tRPC, and Tailwind CSS.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
