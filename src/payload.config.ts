@@ -1,4 +1,5 @@
 // storage-adapter-import-placeholder
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { mongooseAdapter } from "@payloadcms/db-mongodb";
 import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
@@ -61,6 +62,12 @@ export default buildConfig({
       tenantsSlug: "tenants",
       userHasAccessToAllTenants: (user) => isSuperAdmin(user),
     }),
-    // storage-adapter-placeholder
+    vercelBlobStorage({
+      enabled: true,
+      collections: {
+        media: true,
+      },
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    }),
   ],
 });
