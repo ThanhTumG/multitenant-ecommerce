@@ -183,12 +183,9 @@ export const checkoutRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { orderId, resultCode, amount, transId } = input;
+      const { orderId, resultCode, transId } = input;
 
       if (resultCode === 0) {
-        console.log(
-          `Payment successful for order ${orderId}, transaction ID: ${transId}, amount: ${amount}`
-        );
         // Parse extraData để lấy productIds + userId
         const decoded = input.extraData
           ? JSON.parse(Buffer.from(input.extraData, "base64").toString("utf8"))

@@ -79,8 +79,6 @@ export async function POST(request: NextRequest) {
       webhookData as MoMoIpnPayload
     );
 
-    console.log("Callback result:", result);
-
     return NextResponse.json({ success: true, result });
   } catch (error) {
     console.error("Error processing MoMo webhook:", error);
