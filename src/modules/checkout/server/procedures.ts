@@ -76,7 +76,7 @@ export const checkoutRouter = createTRPCRouter({
 
       const orderInfo = "pay with MoMo";
       const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}${generateTenantURL(input.tenantSlug)}/checkout?success=true`;
-      const ipnUrl = `https://widest-galen-sparkishly.ngrok-free.dev/api/momo-webhook`;
+      const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/momo-webhook`;
       const requestType = "payWithMethod";
       const orderId = partnerCode + new Date().getTime();
       const requestId = orderId;
