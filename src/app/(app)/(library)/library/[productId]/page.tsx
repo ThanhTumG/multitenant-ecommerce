@@ -12,6 +12,8 @@ interface Props {
   }>;
 }
 
+export const dynamic = "force-dynamic";
+
 const Library = async ({ params }: Props) => {
   const { productId } = await params;
 
