@@ -10,6 +10,10 @@ export const authRouter = createTRPCRouter({
 
     const session = await ctx.payload.auth({ headers });
 
+    if (session.user) {
+      session.user.tenants = undefined;
+    }
+
     return session;
   }),
   register: baseProcedure
