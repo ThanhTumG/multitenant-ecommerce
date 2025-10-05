@@ -19,6 +19,11 @@ export const tenantsRouter = createTRPCRouter({
             equals: input.slug,
           },
         },
+        select: {
+          accessKey: false,
+          partnerCode: false,
+          secretKey: false,
+        },
         limit: 1,
         pagination: false,
       });
