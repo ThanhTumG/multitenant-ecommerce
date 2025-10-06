@@ -184,7 +184,7 @@ export const checkoutRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { orderId, resultCode, transId } = input;
-
+      console.log("🚀 ~ file: procedures.ts:231 ~ .mutation ~ input:", input);
       if (resultCode === 0) {
         // Parse extraData để lấy productIds + userId
         const decoded = input.extraData
