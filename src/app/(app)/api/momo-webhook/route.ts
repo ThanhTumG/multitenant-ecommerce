@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { appRouter } from "@/trpc/routers/_app";
-import { createTRPCContext } from "@/trpc/init";
+import { caller } from "@/trpc/server";
 
 type MoMoIpnPayload = {
   partnerCode?: string;
@@ -69,10 +68,6 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-
-    // Tạo tRPC context và gọi procedure callback
-    const ctx = await createTRPCContext();
-    const caller = appRouter.createCaller(ctx);
 
     // Gọi procedure callback với dữ liệu webhook
     const result = await caller.checkout.callback(

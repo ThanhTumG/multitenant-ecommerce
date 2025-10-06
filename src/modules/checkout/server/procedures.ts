@@ -75,8 +75,26 @@ export const checkoutRouter = createTRPCRouter({
       const amount = products.docs.reduce((prev, curr) => prev + curr.price, 0);
 
       const orderInfo = "pay with MoMo";
-      const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}${generateTenantURL(input.tenantSlug)}/checkout?success=true`;
-      const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/momo-webhook`;
+
+      // Debug: Log environment variables
+      console.log("🔧 Environment check:", {
+        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+        NODE_ENV: process.env.NODE_ENV,
+        VERCEL_URL: process.env.VERCEL_URL,
+      });
+
+      // Sử dụng VERCEL_URL nếu NEXT_PUBLIC_APP_URL không có
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "https://multitenant-ecommerce.vercel.app");
+
+      const redirectUrl = `${baseUrl}${generateTenantURL(input.tenantSlug)}/checkout?success=true`;
+      const ipnUrl = `${baseUrl}/api/momo-webhook`;
+
+      // Debug: Log URLs được tạo
+      console.log("🔗 Generated URLs:", { redirectUrl, ipnUrl, baseUrl });
       const requestType = "payWithMethod";
       const orderId = partnerCode + new Date().getTime();
       const requestId = orderId;
@@ -142,6 +160,16 @@ export const checkoutRouter = createTRPCRouter({
         signature: signature,
       });
 
+      // Debug: Log MoMo request details
+      console.log("🚀 MoMo payment request:", {
+        url: `${process.env.NEXT_PUBLIC_PAYMENT_URL}/create`,
+        ipnUrl,
+        redirectUrl,
+        orderId,
+        amount,
+        partnerCode,
+      });
+
       //options for axios
       const option = {
         method: "POST",
@@ -184,7 +212,7 @@ export const checkoutRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { orderId, resultCode, transId } = input;
-
+      console.log("🚀 ~ file: procedures.ts:231 ~ .mutation ~ input:", input);
       if (resultCode === 0) {
         // Parse extraData để lấy productIds + userId
         const decoded = input.extraData
