@@ -70,7 +70,6 @@ export const checkoutRouter = createTRPCRouter({
         });
       }
 
-      // TODO: Verify the MoMo tokens
       const { accessKey, secretKey, partnerCode } = tenant;
       const amount = products.docs.reduce((prev, curr) => prev + curr.price, 0);
 
@@ -83,18 +82,11 @@ export const checkoutRouter = createTRPCRouter({
         VERCEL_URL: process.env.VERCEL_URL,
       });
 
-      // Sử dụng VERCEL_URL nếu NEXT_PUBLIC_APP_URL không có
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        (process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : "https://multitenant-ecommerce.vercel.app");
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
 
       const redirectUrl = `${baseUrl}${generateTenantURL(input.tenantSlug)}/checkout?success=true`;
-      const ipnUrl = `${baseUrl}/api/momo-webhook`;
+      const ipnUrl = `${baseUrl}`;
 
-      // Debug: Log URLs được tạo
-      console.log("🔗 Generated URLs:", { redirectUrl, ipnUrl, baseUrl });
       const requestType = "payWithMethod";
       const orderId = partnerCode + new Date().getTime();
       const requestId = orderId;
@@ -160,16 +152,6 @@ export const checkoutRouter = createTRPCRouter({
         signature: signature,
       });
 
-      // Debug: Log MoMo request details
-      console.log("🚀 MoMo payment request:", {
-        url: `${process.env.NEXT_PUBLIC_PAYMENT_URL}/create`,
-        ipnUrl,
-        redirectUrl,
-        orderId,
-        amount,
-        partnerCode,
-      });
-
       //options for axios
       const option = {
         method: "POST",
@@ -212,7 +194,6 @@ export const checkoutRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { orderId, resultCode, transId } = input;
-      console.log("🚀 ~ file: procedures.ts:231 ~ .mutation ~ input:", input);
       if (resultCode === 0) {
         // Parse extraData để lấy productIds + userId
         const decoded = input.extraData
@@ -251,6 +232,125 @@ export const checkoutRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  checkStatus: baseProcedure
+    .input(
+      z.object({
+        partnerCode: z.string(),
+        requestId: z.string(),
+        orderId: z.string(),
+        tenantSlug: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tenantData = await ctx.payload.find({
+        collection: "tenants",
+        limit: 1,
+        pagination: false,
+        where: {
+          slug: {
+            equals: input.tenantSlug,
+          },
+        },
+      });
+
+      const tenant = tenantData.docs[0];
+      if (!tenant) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tenant not found",
+        });
+      }
+      const { accessKey, secretKey } = tenant;
+
+      const rawSignature = `accessKey=${accessKey}&orderId=${input.orderId}&partnerCode=${input.partnerCode}&requestId=${input.requestId}`;
+      const signature = crypto
+        .createHmac("sha256", secretKey)
+        .update(rawSignature)
+        .digest("hex");
+
+      const requestBody = JSON.stringify({
+        partnerCode: input.partnerCode,
+        requestId: input.requestId,
+        orderId: input.orderId,
+        signature: signature,
+        lang: "vi",
+      });
+
+      //options for axios
+      const option = {
+        method: "POST",
+        url: `${process.env.NEXT_PUBLIC_PAYMENT_URL}/query`,
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(requestBody),
+        },
+        data: requestBody,
+      };
+
+      try {
+        const response = await axios(option);
+        console.log("✅ MoMo query response:", response.data);
+
+        if (response.data.resultCode !== 0) {
+          return {
+            success: false,
+            message: response.data.message || "Payment not completed",
+            resultCode: response.data.resultCode,
+          };
+        }
+
+        // Parse extraData để lấy productIds + userId
+        const extraData = response.data.extraData;
+        const decoded = extraData
+          ? JSON.parse(Buffer.from(extraData, "base64").toString("utf8"))
+          : { productIds: [], userId: undefined };
+
+        const productIds: string[] = Array.isArray(decoded.productIds)
+          ? decoded.productIds
+          : [];
+        const userId: string | undefined = decoded.userId;
+
+        if (!userId) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not found",
+          });
+        }
+        if (productIds.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Product not found",
+          });
+        }
+
+        // Tạo 1 order cho mỗi productId (nếu có userId & productIds)
+        for (const pid of productIds) {
+          await ctx.payload.create({
+            collection: "orders",
+            data: {
+              name: `Order - ${response.data.orderId}`,
+              user: userId,
+              product: pid,
+              transactionId: String(response.data.transId ?? ""),
+            },
+          });
+        }
+
+        return {
+          success: true,
+          message: "Payment completed successfully",
+          resultCode: response.data.resultCode,
+          orderId: response.data.orderId,
+          transId: response.data.transId,
+        };
+      } catch {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to check payment status",
+        });
+      }
     }),
 
   getProducts: baseProcedure

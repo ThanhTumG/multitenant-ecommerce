@@ -48,12 +48,26 @@ export const CheckoutView = ({ tenantSlug }: Props) => {
     })
   );
 
+  const checkStatus = useMutation(
+    trpc.checkout.checkStatus.mutationOptions({
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
   const handlePurchase = () => {
     purchase.mutate({ tenantSlug, productIds });
   };
 
   useEffect(() => {
     if (states.success) {
+      checkStatus.mutate({
+        orderId: states.orderId,
+        partnerCode: states.partnerCode,
+        requestId: states.requestId,
+        tenantSlug: tenantSlug,
+      });
       setStates({ success: false, cancel: false });
       clearCart();
       queryClient.invalidateQueries(trpc.library.getMany.infiniteQueryFilter());
@@ -61,6 +75,11 @@ export const CheckoutView = ({ tenantSlug }: Props) => {
     }
   }, [
     states.success,
+    states.orderId,
+    states.partnerCode,
+    states.requestId,
+    tenantSlug,
+    checkStatus,
     clearCart,
     router,
     setStates,
