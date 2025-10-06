@@ -19,6 +19,7 @@ type MoMoIpnPayload = {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("momo webhook");
     // Parse dữ liệu từ MoMo webhook
     const contentType = request.headers.get("content-type");
     let webhookData: Partial<MoMoIpnPayload> = {};
